@@ -15,7 +15,7 @@
 
 [[projects]]
   name = "github.com/jinzhu/gorm"
-  packages = ["."]
+  packages = [".","dialects/postgres"]
   revision = "5174cc5c242a728b435ea2be8a2f7f998e15429b"
   version = "v1.0"
 
@@ -25,9 +25,15 @@
   packages = ["."]
   revision = "1c35d901db3da928c72a72d8458480cc9ade058f"
 
+[[projects]]
+  branch = "master"
+  name = "github.com/lib/pq"
+  packages = [".","hstore","oid"]
+  revision = "83612a56d3dd153a94a629cd64925371c9adad78"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8a9e77c3662dcab52b7b8438027822aa82f39a574399cecfda7956ca5639fd56"
+  inputs-digest = "1153d07cb708258b58aef2a8526420c278a165716e2b54b12e62c8ed5d1f8af3"
   solver-name = "gps-cdcl"
   solver-version = 1

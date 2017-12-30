@@ -1,12 +1,16 @@
 package main
 
-import "github.com/khisakuni/kommunicake/app"
-import "github.com/khisakuni/kommunicake/db"
-import "github.com/khisakuni/kommunicake/router"
+import (
+	"github.com/gorilla/mux"
+	"github.com/khisakuni/kommunicake/api/v1"
+	"github.com/khisakuni/kommunicake/app"
+	"github.com/khisakuni/kommunicake/db"
+)
 
 func main() {
 	d, err := db.NewDB()
-	r := router.NewRouter()
+	r := mux.NewRouter()
+	v1.CreateV1Routes(r)
 
 	a := app.NewApp(d, r)
 	if err != nil {

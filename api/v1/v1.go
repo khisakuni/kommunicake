@@ -1,3 +1,7 @@
 package v1
 
-type V1 struct{}
+import "github.com/gorilla/mux"
+
+func CreateV1Routes(r *mux.Router) {
+	GetMessages(r)
+}

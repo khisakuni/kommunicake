@@ -1,0 +1,9 @@
+development:
+  dialect: postgres
+  datasource: dbname=kommunicake_development sslmode=disable
+  dir: migrations/postgres
+
+production:
+  dialect: postgres
+  datasource: dbname=<%= ENV['DB_NAME'] %> user=<%= ENV['DB_USER'] %> password=<%= ENV['DB_PASSWORD'] %> sslmode=<%= ENV['DB_SSL_MODE'] %>
+  dir: migrations/postgres

@@ -45,7 +45,7 @@ func (a *App) Run() {
 			a.Port,
 			handlers.LoggingHandler(
 				os.Stdout,
-				middleware.WithDB(a.Router, a.DB),
+				middleware.WithDB(a.DB, a.Router),
 			),
 		),
 	)

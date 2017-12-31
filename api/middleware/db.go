@@ -9,10 +9,10 @@ import (
 
 const dbKey contextKey = "database key"
 
-// WithDB adds ref to db to context
-func WithDB(next http.Handler, db *database.DB) http.Handler {
+// WithDB adds ref to DB to context
+func WithDB(db *database.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := newContextWithDB(r.Context(), db, r)
+		ctx := context.WithValue(r.Context(), dbKey, db)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -20,8 +20,4 @@ func WithDB(next http.Handler, db *database.DB) http.Handler {
 // GetDBFromContext retrieves ref to DB from context
 func GetDBFromContext(ctx context.Context) *database.DB {
 	return ctx.Value(dbKey).(*database.DB)
-}
-
-func newContextWithDB(ctx context.Context, db *database.DB, r *http.Request) context.Context {
-	return context.WithValue(ctx, dbKey, db)
 }

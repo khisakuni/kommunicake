@@ -8,7 +8,8 @@ import (
 )
 
 func GetMessages(r *mux.Router) {
-	r.HandleFunc("/api/v1/messages", func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "hi")
-	})
+	}
+	r.HandleFunc("/api/v1/messages", handler).Methods("GET")
 }

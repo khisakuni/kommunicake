@@ -8,6 +8,12 @@
   version = "v1.1"
 
 [[projects]]
+  name = "github.com/gorilla/handlers"
+  packages = ["."]
+  revision = "90663712d74cb411cbef281bc1e08c19d1a76145"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/gorilla/mux"
   packages = ["."]
   revision = "7f08801859139f86dfafd1c296e2cba9a80d292e"
@@ -34,6 +40,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1153d07cb708258b58aef2a8526420c278a165716e2b54b12e62c8ed5d1f8af3"
+  inputs-digest = "5a3ca0cc7520f71ebeb9dfe81703dfe21cd6f064a4d3416ef74e300d2b38ec56"
   solver-name = "gps-cdcl"
   solver-version = 1

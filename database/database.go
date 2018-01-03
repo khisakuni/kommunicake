@@ -53,7 +53,7 @@ func NewDB(options ...Option) (*DB, error) {
 	}
 
 	conn, err := gorm.Open("postgres", d.ConnStr)
-	defer conn.Close()
+	// defer conn.Close()
 
 	if err != nil {
 		return nil, err

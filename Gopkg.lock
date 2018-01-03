@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
+  version = "v3.1.0"
+
+[[projects]]
   name = "github.com/gorilla/context"
   packages = ["."]
   revision = "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
@@ -32,14 +38,26 @@
   revision = "1c35d901db3da928c72a72d8458480cc9ade058f"
 
 [[projects]]
+  name = "github.com/joho/godotenv"
+  packages = [".","autoload"]
+  revision = "a79fa1e548e2c689c241d10173efd51e5d689d5b"
+  version = "v1.2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/lib/pq"
   packages = [".","hstore","oid"]
   revision = "83612a56d3dd153a94a629cd64925371c9adad78"
 
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["bcrypt","blowfish"]
+  revision = "0fcca4842a8d74bfddc2c96a073bd2a4d2a7a2e8"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5a3ca0cc7520f71ebeb9dfe81703dfe21cd6f064a4d3416ef74e300d2b38ec56"
+  inputs-digest = "e7402f828be2ae8ad28f0ca467f603fc5a6b7ed7f5f02333be4650f264855670"
   solver-name = "gps-cdcl"
   solver-version = 1

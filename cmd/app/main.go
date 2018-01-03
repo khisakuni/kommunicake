@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/mux"
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/khisakuni/kommunicake/api/v1"
 	"github.com/khisakuni/kommunicake/app"
 	"github.com/khisakuni/kommunicake/database"
@@ -10,6 +11,7 @@ import (
 func main() {
 	// Initialize DB connection
 	db, err := database.NewDB()
+	defer db.Conn.Close()
 
 	// Create router
 	r := mux.NewRouter()

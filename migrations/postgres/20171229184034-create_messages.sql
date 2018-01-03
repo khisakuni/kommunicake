@@ -1,10 +1,10 @@
 
 -- +migrate Up
 CREATE TABLE users(
-  id BIGSERIAL,
+  id BIGSERIAL UNIQUE,
   name VARCHAR,
-  encrypted_password VARCHAR,
-  salt VARCHAR
+  email VARCHAR UNIQUE,
+  encrypted_password VARCHAR
 );
 CREATE TABLE messages(
   id BIGSERIAL,

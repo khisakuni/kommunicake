@@ -40,13 +40,8 @@ func NewApp(db *database.DB, r *mux.Router, options ...Option) *App {
 // Run starts the app on given port. Default port is ":3000"
 func (a *App) Run() {
 	log.Printf("Listening on port: %s\n", a.Port)
-	log.Fatal(
-		http.ListenAndServe(
-			a.Port,
-			handlers.LoggingHandler(
-				os.Stdout,
-				middleware.WithDB(a.DB, a.Router),
-			),
-		),
-	)
+
+	handler := handlers.LoggingHandler(os.Stdout, middleware.WithCORS(middleware.WithDB(a.DB, a.Router)))
+
+	log.Fatal(http.ListenAndServe(a.Port, handler))
 }

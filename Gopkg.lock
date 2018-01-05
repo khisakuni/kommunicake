@@ -50,6 +50,12 @@
   revision = "83612a56d3dd153a94a629cd64925371c9adad78"
 
 [[projects]]
+  name = "github.com/rs/cors"
+  packages = ["."]
+  revision = "7af7a1e09ba336d2ea14b1ce73bf693c6837dbf6"
+  version = "v1.2"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["bcrypt","blowfish"]
@@ -58,6 +64,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e7402f828be2ae8ad28f0ca467f603fc5a6b7ed7f5f02333be4650f264855670"
+  inputs-digest = "b9ca260a4dc9de5f16a5680aa7400a8164d380f9289736136e295d05d39e6dac"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -47,8 +47,8 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := struct {
-		User  models.User
-		Token string
+		User  models.User `json:"user"`
+		Token string      `json:"token"`
 	}{
 		User:  user,
 		Token: token,

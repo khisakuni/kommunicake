@@ -38,12 +38,13 @@ func decodeJSON(w http.ResponseWriter, body io.ReadCloser, p interface{}) bool {
 
 // validateParams runs validation function
 func validateParams(w http.ResponseWriter, validate func() error) bool {
+	ok := true
 	err := validate()
 	if err != nil {
 		errorResponse(w, err, http.StatusBadRequest)
-		return false
+		ok = false
 	}
-	return true
+	return ok
 }
 
 // errorResponse formats error and writes to ResponseWriter

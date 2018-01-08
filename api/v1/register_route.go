@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -22,15 +21,18 @@ type userParams struct {
 // RegisterUser creates user record if valid
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var u userParams
-	err := json.NewDecoder(r.Body).Decode(&u)
-	if err != nil {
-		errorResponse(w, err, http.StatusInternalServerError)
+	if ok := decodeJSON(w, r.Body, &u); !ok {
 		return
 	}
 
-	if u.Password != u.PasswordConfirmation {
-		err = errors.New("passwords do not match")
-		errorResponse(w, err, http.StatusBadRequest)
+	validate := func() error {
+		var err error
+		if u.Password != u.PasswordConfirmation {
+			err = errors.New("passwords do not match")
+		}
+		return err
+	}
+	if ok := validateParams(w, validate); !ok {
 		return
 	}
 
@@ -38,6 +40,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err = errors.New("Duplicate email")
 		errorResponse(w, err, http.StatusBadRequest)
+		return
 	}
 
 	token, err := user.GenerateToken()
@@ -46,14 +49,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := struct {
-		User  models.User `json:"user"`
-		Token string      `json:"token"`
-	}{
-		User:  user,
-		Token: token,
-	}
-
+	res := userResponse{User: user, Token: token}
 	jsonResponse(w, res, http.StatusCreated)
 }
 

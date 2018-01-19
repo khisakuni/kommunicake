@@ -8,7 +8,8 @@ CREATE TABLE message_providers(
 CREATE TABLE user_message_providers(
   id BIGSERIAL UNIQUE,
   user_id BIGINT,
-  message_provider_id BIGINT
+  message_provider_id BIGINT,
+  refresh_tokn VARCHAR
 );
 
 -- +migrate Down

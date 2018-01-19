@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"fmt"
 	"errors"
+	"os"
   "io/ioutil"
   "log"
 	"net/http"
@@ -12,35 +12,21 @@ import (
   "google.golang.org/api/gmail/v1"
 )
 
-// 1.) Get redirect URL from request
-// 2.) 
 func GmailLoginURL(w http.ResponseWriter, r *http.Request) {
-	// ctx := context.Background()
-	type requestParams struct {
-		RedirectURL string `json:"redirectURL`
-	}
-	var p requestParams
+	var p struct {RedirectURL string `json:"redirectURL"`}
 	if ok := decodeJSON(w, r.Body, &p); !ok {
 		return
 	}
+
+	if len(p.RedirectURL) == 0 {
+		errorResponse(w, errors.New("Must provide redirectURL"), http.StatusBadRequest)
+		return
+	}
 	
-	b, err := ioutil.ReadFile("/Users/koheihisakuni/gmail_client_secrets.json")
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
-	}
+	stateOption := oauth2.SetAuthURLParam("state", p.RedirectURL)
+	authURL := gmailOauthConfig().AuthCodeURL("state-token", oauth2.AccessTypeOffline, stateOption)
 
-	// If modifying these scopes, delete your previously saved credentials
-	// at ~/.credentials/gmail-go-quickstart.json
-	config, err := google.ConfigFromJSON(b, gmail.GmailComposeScope)
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-
-	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline, oauth2.SetAuthURLParam("state", p.RedirectURL))
-
-  fmt.Printf("Go to the following link in your browser then type the "+
-		"authorization code: \n%v\n", authURL)
-	res := struct{RedirectURL string}{RedirectURL: authURL }
+	res := struct{RedirectURL string}{RedirectURL: authURL}
 
 	jsonResponse(w, res, http.StatusOK)
 }
@@ -54,27 +40,20 @@ func GmailWebhook(w http.ResponseWriter, r *http.Request) {
 	url, ok := query["/api/v1/webhooks/gmail?state"]
 	if !ok {
 		errorResponse(w, errors.New("Need redirect url"), http.StatusBadRequest)
+		return
 	}
 
-	code, ok := query["code"]
-	if !ok {
-		errorResponse(w, errors.New("Missing code"), http.StatusInternalServerError)
-	}
-	// fmt.Fprintf(w, "url: %s, code: %s\n", url, code)
-	
-	// vvvvvvvvvvvvvvv GET ACCESS TOKEN vvvvvvvvvvvv
-	b, err := ioutil.ReadFile("/Users/koheihisakuni/gmail_client_secrets.json")
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
-	}
-	config, err := google.ConfigFromJSON(b, gmail.GmailComposeScope)
-	tok, err := config.Exchange(oauth2.NoContext, code[0])
-  if err != nil {
-    log.Fatalf("Unable to retrieve token from web %v", err)
-	}
-	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	// TODO: Store refresh token and auth token in DB and use to make requests to GMAIL API
-	fmt.Println(tok)
+	// code, ok := query["code"]
+	// if !ok {
+	// 	errorResponse(w, errors.New("Missing code"), http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// tok, err := gmailOauthConfig().Exchange(oauth2.NoContext, code[0])
+  // if err != nil {
+  //   log.Fatalf("Unable to retrieve token from web %v", err)
+	// }
 
 	http.Redirect(w, r, url[0], 302)
 }
@@ -103,4 +82,17 @@ func GmailExchangeCode(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	jsonResponse(w, response{Token: tok}, http.StatusOK)
+}
+
+func gmailOauthConfig() *oauth2.Config {
+	return &oauth2.Config{
+		ClientID: os.Getenv("GMAIL_CLIENT_ID"),
+		ClientSecret: os.Getenv("GMAIL_CLIENT_SECRET"),
+		RedirectURL: os.Getenv("GMAIL_REDIRECT_URL"),
+		Scopes: []string{gmail.GmailComposeScope},
+		Endpoint: oauth2.Endpoint{
+			AuthURL: os.Getenv("GMAIL_AUTH_URL"),
+			TokenURL: os.Getenv("GMAIL_TOKEN_URL"),
+		},
+	}
 }

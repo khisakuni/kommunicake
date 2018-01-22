@@ -37,20 +37,21 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := createUser(u, middleware.GetDBFromContext(r.Context()))
+	db := middleware.GetDBFromContext(r.Context())
+	user, err := createUser(u, db)
 	if err != nil {
 		err = errors.New("Duplicate email")
 		helpers.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	token, err := user.GenerateToken()
+	token, err := user.GenerateToken(db)
 	if err != nil {
 		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	res := userResponse{User: user, Token: token}
+	res := userResponse{User: user, Token: token.Value}
 	jsonResponse(w, res, http.StatusCreated)
 }
 

@@ -55,12 +55,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := user.GenerateToken()
+	token, err := user.GenerateToken(db)
 	if err != nil {
 		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	res := userResponse{User: user, Token: token}
+	res := userResponse{User: user, Token: token.Value}
 	jsonResponse(w, res, http.StatusOK)
 }

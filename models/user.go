@@ -18,13 +18,11 @@ type User struct {
 
 // Create writes user data to db
 func (u *User) Create(db *database.DB) error {
-	if err := db.Conn.Create(u).Error; err != nil {
-		return err
-	}
-	return nil
+	return db.Conn.Create(u).Error
 }
 
-func (u *User) GenerateToken() (string, error) {
+// GenerateToken generates a Token 
+func (u *User) GenerateToken(db *database.DB) (*Token, error) {
 	type tokenClaims struct {
 		Email string
 		ID    int
@@ -41,7 +39,19 @@ func (u *User) GenerateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return tokenString, nil
+
+	var t Token
+	db.Conn.
+		Where(Token{UserID: u.ID}).
+		Attrs(Token{UserID: u.ID, CreatedAt: time.Now()}).
+		Assign(Token{UpdatedAt: time.Now(), Value: tokenString}).
+		FirstOrCreate(&t)
+
+	if db.Conn.Error != nil {
+		return nil, db.Conn.Error
+	}
+
+	return &t, nil
 }

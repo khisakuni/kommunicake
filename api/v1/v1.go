@@ -14,6 +14,7 @@ import (
 func Routes(router *mux.Router) {
 	router.HandleFunc("/api/v1/register", RegisterUser).Methods("POST")
 	router.HandleFunc("/api/v1/login", Login).Methods("POST")
+	router.HandleFunc("/api/v1/token", RefreshToken).Methods("POST")
 	router.HandleFunc("/api/v1/gmail_login", GmailLoginURL).Methods("POST")
 	router.HandleFunc("/api/v1/webhooks/gmail", GmailWebhook).Methods("GET")
 	

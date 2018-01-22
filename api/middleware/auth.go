@@ -30,6 +30,9 @@ func WithAuth(next http.Handler) http.Handler {
 		} else if ve, ok := err.(*jwt.ValidationError); ok {
 			helpers.ErrorResponse(w, ve, http.StatusUnauthorized)
 			return
+		} else {
+			helpers.ErrorResponse(w, fmt.Errorf("Invalid token"), http.StatusUnauthorized)
+			return
 		}
 
 		next.ServeHTTP(w, r)

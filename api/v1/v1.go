@@ -6,19 +6,20 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/khisakuni/kommunicake/database"
 	middleware "github.com/khisakuni/kommunicake/api/middleware"
 	helpers "github.com/khisakuni/kommunicake/api/helpers"
 )
 
 // Routes attaches all the v1 routes to router
-func Routes(router *mux.Router) {
+func Routes(router *mux.Router, db *database.DB) {
 	router.HandleFunc("/api/v1/register", RegisterUser).Methods("POST")
 	router.HandleFunc("/api/v1/login", Login).Methods("POST")
 	router.HandleFunc("/api/v1/token", RefreshToken).Methods("POST")
 	router.HandleFunc("/api/v1/gmail_login", GmailLoginURL).Methods("POST")
 	router.HandleFunc("/api/v1/webhooks/gmail", GmailWebhook).Methods("GET")
 	
-	router.HandleFunc("/api/v1/test", middleware.WithAuth(http.HandlerFunc(Test)).ServeHTTP)
+	router.HandleFunc("/api/v1/test", middleware.WithAuth(http.HandlerFunc(Test), db).ServeHTTP)
 }
 
 // jsonResponse marshals struct and writes to ResponseWriter

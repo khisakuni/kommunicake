@@ -25,6 +25,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	if token.Valid {
 		// issue new access & refresh token
+
 	} else if ve, ok := err.(*jwt.ValidationError); ok {
 		helpers.ErrorResponse(w, ve, http.StatusUnauthorized)
 		return

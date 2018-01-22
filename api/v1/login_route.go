@@ -18,7 +18,7 @@ type loginParams struct {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "cool")
+	fmt.Fprintf(w, "cool %v\n", middleware.GetUserFromContext(r.Context()))
 }
 
 // Login authenticates user and returns token
@@ -55,7 +55,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := user.GenerateToken(db)
+	token, err := models.GenerateToken(db, &user)
 	if err != nil {
 		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return

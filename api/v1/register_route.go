@@ -45,7 +45,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := user.GenerateToken(db)
+	token, err := models.GenerateToken(db, &user)
 	if err != nil {
 		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return

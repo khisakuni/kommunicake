@@ -3,13 +3,11 @@ package v1
 import (
 	"errors"
 	"os"
-  "io/ioutil"
-  "log"
 	"net/http"
 	"net/url"
   "golang.org/x/oauth2"
-  "golang.org/x/oauth2/google"
-  "google.golang.org/api/gmail/v1"
+	"google.golang.org/api/gmail/v1"
+	helpers "github.com/khisakuni/kommunicake/api/helpers"
 )
 
 func GmailLoginURL(w http.ResponseWriter, r *http.Request) {
@@ -19,34 +17,32 @@ func GmailLoginURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(p.RedirectURL) == 0 {
-		errorResponse(w, errors.New("Must provide redirectURL"), http.StatusBadRequest)
+		helpers.ErrorResponse(w, errors.New("Must provide redirectURL"), http.StatusBadRequest)
 		return
 	}
 	
 	stateOption := oauth2.SetAuthURLParam("state", p.RedirectURL)
 	authURL := gmailOauthConfig().AuthCodeURL("state-token", oauth2.AccessTypeOffline, stateOption)
 
-	res := struct{RedirectURL string}{RedirectURL: authURL}
-
-	jsonResponse(w, res, http.StatusOK)
+	jsonResponse(w, struct{RedirectURL string}{RedirectURL: authURL}, http.StatusOK)
 }
 
 func GmailWebhook(w http.ResponseWriter, r *http.Request) {
 	query, err := url.ParseQuery(r.URL.String())
 	if err != nil {
-		errorResponse(w, err, http.StatusInternalServerError)
+		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 	url, ok := query["/api/v1/webhooks/gmail?state"]
 	if !ok {
-		errorResponse(w, errors.New("Need redirect url"), http.StatusBadRequest)
+		helpers.ErrorResponse(w, errors.New("Need redirect url"), http.StatusBadRequest)
 		return
 	}
 
 	// TODO: Store refresh token and auth token in DB and use to make requests to GMAIL API
 	// code, ok := query["code"]
 	// if !ok {
-	// 	errorResponse(w, errors.New("Missing code"), http.StatusInternalServerError)
+	// 	ErrorResponse(w, errors.New("Missing code"), http.StatusInternalServerError)
 	// 	return
 	// }
 
@@ -56,32 +52,6 @@ func GmailWebhook(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	http.Redirect(w, r, url[0], 302)
-}
-
-func GmailExchangeCode(w http.ResponseWriter, r *http.Request) {
-	type params struct {
-		Code string `json:"code"`
-	}
-	var p params
-	if ok := decodeJSON(w, r.Body, &p); !ok {
-		return
-	}
-
-	b, err := ioutil.ReadFile("/Users/koheihisakuni/gmail_client_secrets.json")
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
-	}
-	config, err := google.ConfigFromJSON(b, gmail.GmailComposeScope)
-	tok, err := config.Exchange(oauth2.NoContext, p.Code)
-  if err != nil {
-    log.Fatalf("Unable to retrieve token from web %v", err)
-	}
-
-	type response struct {
-		Token *oauth2.Token
-	}
-	
-	jsonResponse(w, response{Token: tok}, http.StatusOK)
 }
 
 func gmailOauthConfig() *oauth2.Config {

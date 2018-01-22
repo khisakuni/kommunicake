@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	middleware "github.com/khisakuni/kommunicake/api/middleware"
+	helpers "github.com/khisakuni/kommunicake/api/helpers"
 )
 
 // Routes attaches all the v1 routes to router
@@ -14,7 +16,8 @@ func Routes(router *mux.Router) {
 	router.HandleFunc("/api/v1/login", Login).Methods("POST")
 	router.HandleFunc("/api/v1/gmail_login", GmailLoginURL).Methods("POST")
 	router.HandleFunc("/api/v1/webhooks/gmail", GmailWebhook).Methods("GET")
-	router.HandleFunc("/api/v1/gmail/token", GmailExchangeCode).Methods("POST")
+	
+	router.HandleFunc("/api/v1/test", middleware.WithAuth(http.HandlerFunc(Test)).ServeHTTP)
 }
 
 // jsonResponse marshals struct and writes to ResponseWriter
@@ -33,7 +36,7 @@ func decodeJSON(w http.ResponseWriter, body io.ReadCloser, p interface{}) bool {
 	ok := true
 	err := json.NewDecoder(body).Decode(p)
 	if err != nil {
-		errorResponse(w, err, http.StatusInternalServerError)
+		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		ok = false
 	}
 	return ok
@@ -44,22 +47,8 @@ func validateParams(w http.ResponseWriter, validate func() error) bool {
 	ok := true
 	err := validate()
 	if err != nil {
-		errorResponse(w, err, http.StatusBadRequest)
+		helpers.ErrorResponse(w, err, http.StatusBadRequest)
 		ok = false
 	}
 	return ok
-}
-
-// errorResponse formats error and writes to ResponseWriter
-func errorResponse(w http.ResponseWriter, err error, status int) {
-	type errorMessage struct {
-		Message string `json:"message"`
-	}
-	js, err := json.Marshal(errorMessage{Message: err.Error()})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	http.Error(w, string(js), status)
 }

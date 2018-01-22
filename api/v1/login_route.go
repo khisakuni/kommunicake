@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"errors"
 	"net/http"
 
@@ -8,11 +9,16 @@ import (
 
 	"github.com/khisakuni/kommunicake/api/middleware"
 	"github.com/khisakuni/kommunicake/models"
+	helpers "github.com/khisakuni/kommunicake/api/helpers"
 )
 
 type loginParams struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+func Test(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "cool")
 }
 
 // Login authenticates user and returns token
@@ -38,20 +44,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	db.Conn.Where("email = ?", p.Email).First(&user)
 	if user.Email == "" {
 		err := errors.New("User with that email does not exist")
-		errorResponse(w, err, http.StatusNotFound)
+		helpers.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.EncryptedPassword), []byte(p.Password))
 	if err != nil {
 		err = errors.New("Password is incorrect")
-		errorResponse(w, err, http.StatusUnauthorized)
+		helpers.ErrorResponse(w, err, http.StatusUnauthorized)
 		return
 	}
 
 	token, err := user.GenerateToken()
 	if err != nil {
-		errorResponse(w, err, http.StatusInternalServerError)
+		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 

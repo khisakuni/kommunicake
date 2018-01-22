@@ -8,6 +8,7 @@ import (
 	"github.com/khisakuni/kommunicake/database"
 	"github.com/khisakuni/kommunicake/models"
 
+	helpers "github.com/khisakuni/kommunicake/api/helpers"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -39,13 +40,13 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	user, err := createUser(u, middleware.GetDBFromContext(r.Context()))
 	if err != nil {
 		err = errors.New("Duplicate email")
-		errorResponse(w, err, http.StatusBadRequest)
+		helpers.ErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	token, err := user.GenerateToken()
 	if err != nil {
-		errorResponse(w, err, http.StatusInternalServerError)
+		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 

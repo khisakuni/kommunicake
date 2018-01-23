@@ -100,7 +100,7 @@ func newTokenString(user *User) (string, error) {
 		ID:    user.ID,
 		StandardClaims: jwt.StandardClaims{
 			Issuer:    "kommunicake",
-			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
+			ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

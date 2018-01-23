@@ -1,36 +1,40 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
-	"os"
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/khisakuni/kommunicake/api/helpers"
+	"github.com/khisakuni/kommunicake/api/middleware"
+	"github.com/khisakuni/kommunicake/models"
 )
 
 func RefreshToken(w http.ResponseWriter, r *http.Request) {
-	var params struct { RefreshToken string `json:"refreshToken"`}
+	var params struct { Token string `json:"token"`}
 	if ok := decodeJSON(w, r.Body, &params); !ok {
 		return
 	}
 
-	token, err := jwt.Parse(params.RefreshToken, func(tokwn *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("JWT_SECRET")), nil
-	})
-
+	db := middleware.GetDBFromContext(r.Context())
+	token, err := models.FromTokenString(params.Token, db)
 	if err != nil {
 		helpers.ErrorResponse(w, err, http.StatusUnauthorized)
 		return
 	}
 
-	if token.Valid {
-		// issue new access & refresh token
-
-	} else if ve, ok := err.(*jwt.ValidationError); ok {
-		helpers.ErrorResponse(w, ve, http.StatusUnauthorized)
-		return
-	} else {
-		helpers.ErrorResponse(w, fmt.Errorf("Invalid token"), http.StatusUnauthorized)
+	user, err := token.GetUser(db)
+	if err != nil {
+		helpers.ErrorResponse(w, err, http.StatusUnauthorized)
 		return
 	}
+
+	newToken, err := models.GenerateToken(db, user)
+	if err != nil {
+		helpers.ErrorResponse(w, err, http.StatusUnauthorized)
+		return
+	}
+
+	res := struct {
+		User *models.User
+		Token string
+	}{User: user, Token: newToken.Value}
+	jsonResponse(w, res, http.StatusOK)
 }

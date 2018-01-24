@@ -13,10 +13,13 @@ import (
 
 // Routes attaches all the v1 routes to router
 func Routes(router *mux.Router, db *database.DB) {
+	// Auth
 	router.HandleFunc("/api/v1/register", RegisterUser).Methods("POST")
 	router.HandleFunc("/api/v1/login", Login).Methods("POST")
 	router.HandleFunc("/api/v1/token", middleware.WithAuth(http.HandlerFunc(RefreshToken), db).ServeHTTP).Methods("POST")
-	router.HandleFunc("/api/v1/gmail_login", GmailLoginURL).Methods("POST")
+
+	// Gmail
+	router.HandleFunc("/api/v1/gmail_login", middleware.WithAuth(http.HandlerFunc(GmailLoginURL), db).ServeHTTP).Methods("POST")
 	router.HandleFunc("/api/v1/webhooks/gmail", GmailWebhook).Methods("GET")
 	
 	router.HandleFunc("/api/v1/test", middleware.WithAuth(http.HandlerFunc(Test), db).ServeHTTP)

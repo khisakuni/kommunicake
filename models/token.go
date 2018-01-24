@@ -2,15 +2,16 @@ package models
 
 import (
 	"fmt"
-	"time"
 	"os"
-	"github.com/khisakuni/kommunicake/database"
+	"time"
+
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/khisakuni/kommunicake/database"
 )
 
 type Token struct {
-	Value string
-	UserID int
+	Value     string
+	UserID    int
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -43,7 +44,7 @@ func FromTokenString(tokenString string, db *database.DB) (*Token, error) {
 
 	var token Token
 	db.Conn.Where(Token{UserID: int(userID)}).First(&token)
-	return &token, db.Conn.Error	
+	return &token, db.Conn.Error
 }
 
 func (t *Token) GetUser(db *database.DB) (*User, error) {
@@ -65,7 +66,7 @@ func userIDFromTokenString(tokenString string) (int, error) {
 
 	if userID, ok := claims["ID"]; ok {
 		if id, ok := userID.(float64); ok {
-			return int(id), nil	
+			return int(id), nil
 		}
 	}
 

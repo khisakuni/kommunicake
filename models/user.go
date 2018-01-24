@@ -16,7 +16,3 @@ type User struct {
 func (u *User) Create(db *database.DB) error {
 	return db.Conn.Create(u).Error
 }
-
-// GenerateToken generates and persists a Token 
-// func (u *User) GenerateToken(db *database.DB) (*Token, error) {
-// }

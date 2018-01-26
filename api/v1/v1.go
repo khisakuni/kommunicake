@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/khisakuni/kommunicake/database"
-	middleware "github.com/khisakuni/kommunicake/api/middleware"
 	helpers "github.com/khisakuni/kommunicake/api/helpers"
+	middleware "github.com/khisakuni/kommunicake/api/middleware"
+	"github.com/khisakuni/kommunicake/database"
 )
 
 // Routes attaches all the v1 routes to router
@@ -21,7 +21,10 @@ func Routes(router *mux.Router, db *database.DB) {
 	// Gmail
 	router.HandleFunc("/api/v1/gmail_login", middleware.WithAuth(http.HandlerFunc(GmailLoginURL), db).ServeHTTP).Methods("POST")
 	router.HandleFunc("/api/v1/webhooks/gmail", GmailWebhook).Methods("GET")
-	
+
+	// Message Providers
+	router.HandleFunc("/api/v1/message_providers", middleware.WithAuth(http.HandlerFunc(MessageProvidersIndex), db).ServeHTTP).Methods("GET")
+
 	router.HandleFunc("/api/v1/test", middleware.WithAuth(http.HandlerFunc(Test), db).ServeHTTP)
 }
 

@@ -1,15 +1,15 @@
 package v1
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 
+	helpers "github.com/khisakuni/kommunicake/api/helpers"
 	"github.com/khisakuni/kommunicake/api/middleware"
 	"github.com/khisakuni/kommunicake/models"
-	helpers "github.com/khisakuni/kommunicake/api/helpers"
 )
 
 type loginParams struct {
@@ -24,9 +24,12 @@ func Test(w http.ResponseWriter, r *http.Request) {
 // Login authenticates user and returns token
 func Login(w http.ResponseWriter, r *http.Request) {
 	var p loginParams
+	fmt.Printf("REQUEST PARAMS >> %v\n", r.Body)
 	if ok := decodeJSON(w, r.Body, &p); !ok {
 		return
 	}
+
+	fmt.Printf("LOGIN PARAMS >> %v\n", p)
 
 	validate := func() error {
 		var err error

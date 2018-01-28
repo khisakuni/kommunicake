@@ -24,8 +24,6 @@ func Routes(router *mux.Router, db *database.DB) {
 
 	// Message Providers
 	router.HandleFunc("/api/v1/message_providers", middleware.WithAuth(http.HandlerFunc(MessageProvidersIndex), db).ServeHTTP).Methods("GET")
-
-	router.HandleFunc("/api/v1/test", middleware.WithAuth(http.HandlerFunc(Test), db).ServeHTTP)
 }
 
 // jsonResponse marshals struct and writes to ResponseWriter

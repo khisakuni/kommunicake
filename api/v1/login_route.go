@@ -2,7 +2,6 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -17,19 +16,12 @@ type loginParams struct {
 	Password string `json:"password"`
 }
 
-func Test(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "cool %v\n", middleware.GetUserFromContext(r.Context()))
-}
-
 // Login authenticates user and returns token
 func Login(w http.ResponseWriter, r *http.Request) {
 	var p loginParams
-	fmt.Printf("REQUEST PARAMS >> %v\n", r.Body)
 	if ok := decodeJSON(w, r.Body, &p); !ok {
 		return
 	}
-
-	fmt.Printf("LOGIN PARAMS >> %v\n", p)
 
 	validate := func() error {
 		var err error

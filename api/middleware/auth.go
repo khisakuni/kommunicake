@@ -1,21 +1,20 @@
 package middleware
 
 import (
-	"github.com/khisakuni/kommunicake/api/helpers"
-	"github.com/khisakuni/kommunicake/models"
-	"github.com/khisakuni/kommunicake/database"
+	"context"
 	"net/http"
 	"strings"
-	"context"
+
+	"github.com/khisakuni/kommunicake/api/helpers"
+	"github.com/khisakuni/kommunicake/database"
+	"github.com/khisakuni/kommunicake/models"
 )
 
 const authKey contextKey = "auth key"
 
 func WithAuth(next http.Handler, db *database.DB) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenString := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-
-		token, err := models.FromTokenString(tokenString, db)
+		token, err := models.FromTokenString(parseTokenString(r), db)
 		if err != nil {
 			helpers.ErrorResponse(w, err, http.StatusUnauthorized)
 			return
@@ -34,4 +33,8 @@ func WithAuth(next http.Handler, db *database.DB) http.Handler {
 
 func GetUserFromContext(ctx context.Context) *models.User {
 	return ctx.Value(authKey).(*models.User)
+}
+
+func parseTokenString(r *http.Request) string {
+	return strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 }

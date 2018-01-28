@@ -17,7 +17,7 @@ func main() {
 	r := mux.NewRouter()
 
 	// Setup routes
-	v1.Routes(r)
+	v1.Routes(r, db)
 
 	// Create App
 	a := app.NewApp(db, r)

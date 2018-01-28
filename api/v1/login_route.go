@@ -6,6 +6,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	helpers "github.com/khisakuni/kommunicake/api/helpers"
 	"github.com/khisakuni/kommunicake/api/middleware"
 	"github.com/khisakuni/kommunicake/models"
 )
@@ -38,23 +39,23 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	db.Conn.Where("email = ?", p.Email).First(&user)
 	if user.Email == "" {
 		err := errors.New("User with that email does not exist")
-		errorResponse(w, err, http.StatusNotFound)
+		helpers.ErrorResponse(w, err, http.StatusNotFound)
 		return
 	}
 
 	err := bcrypt.CompareHashAndPassword([]byte(user.EncryptedPassword), []byte(p.Password))
 	if err != nil {
 		err = errors.New("Password is incorrect")
-		errorResponse(w, err, http.StatusUnauthorized)
+		helpers.ErrorResponse(w, err, http.StatusUnauthorized)
 		return
 	}
 
-	token, err := user.GenerateToken()
+	token, err := models.GenerateToken(db, &user)
 	if err != nil {
-		errorResponse(w, err, http.StatusInternalServerError)
+		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	res := userResponse{User: user, Token: token}
+	res := userResponse{User: user, Token: token.Value}
 	jsonResponse(w, res, http.StatusOK)
 }

@@ -21,6 +21,12 @@ func Routes(router *mux.Router, db *database.DB) {
 	// Gmail
 	router.HandleFunc("/api/v1/gmail_login", middleware.WithAuth(http.HandlerFunc(GmailLoginURL), db).ServeHTTP).Methods("POST")
 	router.HandleFunc("/api/v1/webhooks/gmail", GmailWebhook).Methods("GET")
+	router.HandleFunc("/api/v1/webhooks/gmail/message", GmailWebhookNewMessage).Methods("POST")
+	router.HandleFunc("/api/v1/gmail/subscribe", middleware.WithAuth(http.HandlerFunc(GmailSubscribeToNewMessage), db).ServeHTTP).Methods("POST")
+
+	// Slack
+	router.HandleFunc("/api/v1/slack_login", middleware.WithAuth(http.HandlerFunc(SlackLoginURL), db).ServeHTTP).Methods("POST")
+	router.HandleFunc("/api/v1/webhooks/slack", SlackWebhook).Methods("GET")
 
 	// Message Providers
 	router.HandleFunc("/api/v1/message_providers", middleware.WithAuth(http.HandlerFunc(MessageProvidersIndex), db).ServeHTTP).Methods("GET")

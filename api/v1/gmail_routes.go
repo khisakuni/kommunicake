@@ -5,33 +5,16 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 
 	helpers "github.com/khisakuni/kommunicake/api/helpers"
 	"github.com/khisakuni/kommunicake/api/middleware"
-	"github.com/khisakuni/kommunicake/database"
 	"github.com/khisakuni/kommunicake/models"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/gmail/v1"
 )
 
-type gmailLoginURLParams struct {
-	RedirectURL string `json:"redirectURL"`
-}
-
-func (p *gmailLoginURLParams) validate() error {
-	if len(p.RedirectURL) == 0 {
-		return fmt.Errorf("Must provide redirectURL")
-	}
-
-	if _, err := url.Parse(p.RedirectURL); err != nil {
-		return err
-	}
-	return nil
-}
-
 func GmailLoginURL(w http.ResponseWriter, r *http.Request) {
-	var p gmailLoginURLParams
+	var p oauthLoginURLParams
 	if ok := decodeJSON(w, r.Body, &p); !ok {
 		return
 	}
@@ -43,64 +26,106 @@ func GmailLoginURL(w http.ResponseWriter, r *http.Request) {
 
 	redirectURL, _ := url.Parse(p.RedirectURL)
 	user := middleware.GetUserFromContext(r.Context())
-	authURL := formatGmailAuthURL(redirectURL, user)
+	authURL, err := formatAuthURL(redirectURL, user, gmailOauthConfig(), oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+	if err != nil {
+		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
 
-	jsonResponse(w, gmailLoginURLParams{RedirectURL: authURL}, http.StatusOK)
+	jsonResponse(w, oauthLoginURLParams{RedirectURL: authURL.String()}, http.StatusOK)
 }
 
 func GmailWebhook(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	redirectUrl, err := url.Parse(query.Get("state"))
+	redirectURL, err := url.Parse(query.Get("state"))
 	if err != nil {
 		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	redirectQuery := redirectUrl.Query()
-	userID, err := strconv.Atoi(redirectQuery.Get("user_id"))
+	userID, err := getUserIDFromQuery(query)
 	if err != nil {
 		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	token, err := exchangeCodeForToken(query.Get("code"))
+	token, err := exchangeCodeForToken(query, func(code string) (*oauth2.Token, error) {
+		return gmailOauthConfig().Exchange(oauth2.NoContext, code)
+	})
 	if err != nil {
 		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	db := middleware.GetDBFromContext(r.Context())
-	err = firstOrCreateUserMessageProvider(db, userID, token)
+	_, err = models.FirstOrCreateUserMessageProvider(db, userID, token, models.GMAIL)
 
 	if err != nil {
 		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, redirectUrl.String(), 302)
+	http.Redirect(w, r, redirectURL.String(), 302)
 }
 
-func firstOrCreateUserMessageProvider(db *database.DB, userID int, token *oauth2.Token) error {
+func GmailSubscribeToNewMessage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := middleware.GetUserFromContext(ctx)
+	db := middleware.GetDBFromContext(ctx)
 	var provider models.UserMessageProvider
 	db.Conn.
-		Where(models.UserMessageProvider{UserID: userID, MessageProviderType: "GMAIL"}).
-		Assign(models.UserMessageProvider{RefreshToken: token.RefreshToken}).
-		FirstOrCreate(&provider)
+		Where(models.UserMessageProvider{UserID: user.ID, MessageProviderType: models.GMAIL}).
+		First(&provider)
 
-	return db.Conn.Error
+	token := new(oauth2.Token)
+	token.AccessToken = provider.AccessToken
+	token.RefreshToken = provider.RefreshToken
+	token.Expiry = provider.Expiry
+	token.TokenType = provider.TokenType
+
+	config := gmailOauthConfig()
+	client := config.Client(ctx, token)
+	srv, err := gmail.New(client)
+	if err != nil {
+		fmt.Println("here!!")
+		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+	req, err := srv.Users.Labels.List("me").Do()
+	if err != nil {
+		fmt.Printf("OH NO %v\n", err.Error())
+	} else {
+		fmt.Printf("labels >> %v\n", req.Labels)
+	}
+
+	watchReq := gmail.WatchRequest{
+		TopicName: "projects/endless-science-125305/topics/new-mail",
+		LabelIds:  []string{"INBOX"},
+	}
+	res, err := srv.Users.Watch("me", &watchReq).Do()
+	if err != nil {
+		fmt.Println("here 2!!")
+		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+	fmt.Printf("THINK IT WORKED??? %v\n", res)
+
+	fmt.Fprintf(w, "cool.")
 }
 
-func exchangeCodeForToken(code string) (*oauth2.Token, error) {
-	return gmailOauthConfig().Exchange(oauth2.NoContext, code)
-}
+func GmailWebhookNewMessage(w http.ResponseWriter, r *http.Request) {
+	type PushMessage struct {
+		Message struct {
+			Data      string `json:"data"`
+			MessageID string `json:"message_id"`
+		}
+		Subscription string `json:"subscription"`
+	}
+	var message PushMessage
+	decodeJSON(w, r.Body, &message)
+	fmt.Printf(">>> message >>> data: %s, id: %s, sub: %s\n", message.Message.Data, message.Message.MessageID, message.Subscription)
 
-func formatGmailAuthURL(redirectURL *url.URL, user *models.User) string {
-	query := redirectURL.Query()
-	query.Add("user_id", strconv.Itoa(user.ID))
-	redirectURL.RawQuery = query.Encode()
-
-	stateOption := oauth2.SetAuthURLParam("state", redirectURL.String())
-	return gmailOauthConfig().AuthCodeURL("state-token", oauth2.AccessTypeOffline, stateOption, oauth2.ApprovalForce)
+	fmt.Fprintf(w, "cool")
 }
 
 func gmailOauthConfig() *oauth2.Config {
@@ -108,7 +133,7 @@ func gmailOauthConfig() *oauth2.Config {
 		ClientID:     os.Getenv("GMAIL_CLIENT_ID"),
 		ClientSecret: os.Getenv("GMAIL_CLIENT_SECRET"),
 		RedirectURL:  os.Getenv("GMAIL_REDIRECT_URL"),
-		Scopes:       []string{gmail.GmailComposeScope},
+		Scopes:       []string{gmail.GmailComposeScope, gmail.GmailLabelsScope, gmail.GmailModifyScope},
 		Endpoint: oauth2.Endpoint{
 			AuthURL:  os.Getenv("GMAIL_AUTH_URL"),
 			TokenURL: os.Getenv("GMAIL_TOKEN_URL"),

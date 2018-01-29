@@ -32,8 +32,8 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := struct {
-		User  *models.User
-		Token string
+		User  *models.User `json:"user"`
+		Token string       `json:"token"`
 	}{User: user, Token: newToken.Value}
 	jsonResponse(w, res, http.StatusOK)
 }

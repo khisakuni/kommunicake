@@ -2,6 +2,8 @@ package database
 
 import (
 	"bytes"
+	"fmt"
+	"os"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -42,18 +44,18 @@ func WithConnStr(connStr string) Option {
 
 // NewDB creates database connection
 func NewDB(options ...Option) (*DB, error) {
+	dbSrc := os.Getenv("DATABASE_URL")
+	if dbSrc == "" {
+		dbSrc = "host=localhost user=koheihisakuni dbname=kommunicake_development sslmode=disable"
+	}
+	fmt.Println(dbSrc)
 	d := &DB{
 		Name:    "kommunicake_development",
 		SSLMode: "disable",
-	}
-	d.ConnStr = d.formatConnStr()
-
-	for _, option := range options {
-		option(d)
+		ConnStr: dbSrc,
 	}
 
 	conn, err := gorm.Open("postgres", d.ConnStr)
-	// defer conn.Close()
 
 	if err != nil {
 		return nil, err

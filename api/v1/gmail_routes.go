@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -8,6 +9,7 @@ import (
 
 	helpers "github.com/khisakuni/kommunicake/api/helpers"
 	"github.com/khisakuni/kommunicake/api/middleware"
+	"github.com/khisakuni/kommunicake/jobs/queue"
 	"github.com/khisakuni/kommunicake/models"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/gmail/v1"
@@ -109,6 +111,36 @@ func GmailSubscribeToNewMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Printf("THINK IT WORKED??? %v\n", res)
+
+	fmt.Fprintf(w, "cool.")
+}
+
+func GmailTest(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := middleware.GetUserFromContext(ctx)
+
+	args := struct {
+		Name      string
+		HistoryId uint64
+		UserId    int
+	}{
+		Name:      "ProcessGmailHistoryId",
+		HistoryId: 3134935,
+		UserId:    user.ID,
+	}
+
+	q, err := queue.NewQueue("default")
+	defer q.CleanUp()
+	if err != nil {
+		panic(err)
+	}
+
+	j, _ := json.Marshal(args)
+	err = q.Publish(j)
+
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Fprintf(w, "cool.")
 }

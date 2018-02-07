@@ -53,3 +53,6 @@
   root-package = "github.com/khisakuni/kommunicake"
   go-version = "go1.9.2"
   install = [ "./..." ]
+[[constraint]]
+  branch = "master"
+  name = "github.com/streadway/amqp"

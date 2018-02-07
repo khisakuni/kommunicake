@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -155,7 +156,54 @@ func GmailWebhookNewMessage(w http.ResponseWriter, r *http.Request) {
 	}
 	var message PushMessage
 	decodeJSON(w, r.Body, &message)
+
+	data, err := base64.StdEncoding.DecodeString(message.Message.Data)
+	if err != nil {
+		helpers.ErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	type messageData struct {
+		EmailAddress string `json:"emailAddress"`
+		HistoryID    uint64 `json:"historyId"`
+	}
+	var md messageData
+	json.Unmarshal(data, &md)
+
+	fmt.Printf("message data> %v\n", md.EmailAddress)
+
 	fmt.Printf(">>> message >>> data: %s, id: %s, sub: %s\n", message.Message.Data, message.Message.MessageID, message.Subscription)
+
+	db := middleware.GetDBFromContext(r.Context())
+	var user models.User
+	db.Conn.Where("email = ?", md.EmailAddress).First(&user)
+
+	fmt.Printf("user >>> %v\n", user)
+
+	args := struct {
+		Name      string
+		HistoryId uint64
+		UserId    int
+	}{
+		Name:      "ProcessGmailHistoryId",
+		HistoryId: md.HistoryID,
+		UserId:    user.ID,
+	}
+
+	fmt.Printf("args >>> %v\n", args)
+
+	q, err := queue.NewQueue("default")
+	defer q.CleanUp()
+	if err != nil {
+		panic(err)
+	}
+
+	j, _ := json.Marshal(args)
+	err = q.Publish(j)
+
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Fprintf(w, "cool")
 }

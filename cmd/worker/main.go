@@ -25,6 +25,7 @@ func main() {
 	})
 
 	q.RegisterWorker("ProcessGmailHistoryId", func(args interface{}) {
+		fmt.Println("received message!")
 		bodyMap := args.(map[string]interface{})
 		fmt.Println(bodyMap)
 		historyId := uint64(bodyMap["HistoryId"].(float64))

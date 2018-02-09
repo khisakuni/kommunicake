@@ -33,7 +33,10 @@
 
 [[projects]]
   name = "github.com/jinzhu/gorm"
-  packages = [".","dialects/postgres"]
+  packages = [
+    ".",
+    "dialects/postgres"
+  ]
   revision = "5174cc5c242a728b435ea2be8a2f7f998e15429b"
   version = "v1.0"
 
@@ -45,14 +48,21 @@
 
 [[projects]]
   name = "github.com/joho/godotenv"
-  packages = [".","autoload"]
+  packages = [
+    ".",
+    "autoload"
+  ]
   revision = "a79fa1e548e2c689c241d10173efd51e5d689d5b"
   version = "v1.2.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/lib/pq"
-  packages = [".","hstore","oid"]
+  packages = [
+    ".",
+    "hstore",
+    "oid"
+  ]
   revision = "83612a56d3dd153a94a629cd64925371c9adad78"
 
 [[projects]]
@@ -70,7 +80,10 @@
 [[projects]]
   branch = "master"
   name = "github.com/rubenv/sql-migrate"
-  packages = [".","sqlparse"]
+  packages = [
+    ".",
+    "sqlparse"
+  ]
   revision = "41bceb11e8a7d3933c55dbd23d74b2c5ff1e68b9"
 
 [[projects]]
@@ -82,30 +95,53 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["bcrypt","blowfish"]
+  packages = [
+    "bcrypt",
+    "blowfish"
+  ]
   revision = "0fcca4842a8d74bfddc2c96a073bd2a4d2a7a2e8"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["context","context/ctxhttp","websocket"]
+  packages = [
+    "context",
+    "context/ctxhttp",
+    "websocket"
+  ]
   revision = "0ed95abb35c445290478a5348a7b38bb154135fd"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/oauth2"
-  packages = [".","internal"]
+  packages = [
+    ".",
+    "internal"
+  ]
   revision = "a032972e28060ca4f5644acffae3dfc268cc09db"
 
 [[projects]]
   branch = "master"
   name = "google.golang.org/api"
-  packages = ["gensupport","gmail/v1","googleapi","googleapi/internal/uritemplates"]
+  packages = [
+    "gensupport",
+    "gmail/v1",
+    "googleapi",
+    "googleapi/internal/uritemplates"
+  ]
   revision = "d7238a695cdc29affa1e76d5485eb2f72d30f8f8"
 
 [[projects]]
   name = "google.golang.org/appengine"
-  packages = ["internal","internal/base","internal/datastore","internal/log","internal/remote_api","internal/urlfetch","urlfetch"]
+  packages = [
+    "internal",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch"
+  ]
   revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
   version = "v1.0.0"
 
@@ -118,6 +154,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c3117f5c021bdb4c0f79a15a6688df7a8134015bc7424b94ad37e06fe2e23bb9"
+  inputs-digest = "67179b308b91e803d72ed25bd8231fe41f474dabef9ede08ef1a70df4cc26ec2"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -3,3 +3,6 @@
 /vendor/github.com/*
 !/vendor/github.com/khisakuni
 .env
+
+*.vim
+*.log

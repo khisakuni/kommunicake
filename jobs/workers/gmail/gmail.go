@@ -2,6 +2,7 @@ package gmail
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"os"
 
@@ -13,50 +14,90 @@ import (
 
 func ProcessGmailHistoryId(historyID uint64, userID int) {
 	db, err := database.NewDB()
+	handleError(err)
 	defer db.Conn.Close()
+
+	srv, err := gmailService(db, userID)
+	handleError(err)
+
+	err = processMessages(srv, historyID)
+	handleError(err)
+}
+
+func handleError(err error) {
 	if err != nil {
-		panic(err)
+		panic(err.Error())
+	}
+}
+
+func processMessages(srv *gmail.Service, historyID uint64) error {
+	res, err := srv.Users.History.List("me").StartHistoryId(historyID).Do()
+	if err != nil {
+		return err
 	}
 
+	for _, history := range res.History {
+		for _, m := range history.MessagesAdded {
+			err = processMessage(srv, m.Message.Id)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func processMessage(srv *gmail.Service, messageID string) error {
+	messageRes, err := srv.Users.Messages.Get("me", messageID).Do()
+	if err != nil {
+		return err
+	}
+
+	for _, part := range messageRes.Payload.Parts {
+		fmt.Printf(">>>> mime: %s\n", part.MimeType)
+		decoded, err := base64.StdEncoding.DecodeString(part.Body.Data)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("message: %s\n", string(decoded))
+
+	}
+
+	return nil
+}
+
+func gmailService(db *database.DB, userID int) (*gmail.Service, error) {
+	token, err := tokenFromUser(db, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	config := gmailOauthConfig()
+	ctx := context.Background()
+	client := config.Client(ctx, token)
+	srv, err := gmail.New(client)
+	if err != nil {
+		return nil, err
+	}
+	return srv, nil
+}
+
+func tokenFromUser(db *database.DB, userID int) (*oauth2.Token, error) {
 	var provider models.UserMessageProvider
 	db.Conn.
 		Where(models.UserMessageProvider{UserID: userID, MessageProviderType: models.GMAIL}).
 		First(&provider)
+	if db.Conn.Error != nil {
+		return nil, db.Conn.Error
+	}
 
 	token := new(oauth2.Token)
 	token.AccessToken = provider.AccessToken
 	token.RefreshToken = provider.RefreshToken
 	token.Expiry = provider.Expiry
 	token.TokenType = provider.TokenType
-
-	config := gmailOauthConfig()
-	ctx := context.Background()
-	client := config.Client(ctx, token)
-	srv, err := gmail.New(client)
-
-	if err != nil {
-		panic(err)
-	}
-
-	res, err := srv.Users.History.List("me").StartHistoryId(historyID).Do()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	h := res.History[0]
-
-	for i, m := range h.MessagesAdded {
-		fmt.Printf("snippet > %d: %s\n", i, m.Message.Id)
-		messageRes, err := srv.Users.Messages.Get("me", m.Message.Id).Do()
-		if err != nil {
-			panic(err)
-		}
-
-		for _, part := range messageRes.Payload.Parts {
-			fmt.Printf(">>>> mime: %s\n", part.MimeType)
-		}
-	}
-
+	return token, nil
 }
 
 func gmailOauthConfig() *oauth2.Config {

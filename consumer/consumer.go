@@ -11,10 +11,6 @@ func main() {
 	defer q.CleanUp()
 	handleError(err)
 
-	q.Consume(func(input []byte) {
-		fmt.Printf("GOT A MESSAGE >> %s\n", string(input))
-	})
-
 	select {}
 
 }

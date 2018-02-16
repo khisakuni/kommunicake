@@ -14,8 +14,8 @@ import (
 
 func ProcessGmailHistoryId(historyID uint64, userID int) {
 	db, err := database.NewDB()
-	handleError(err)
 	defer db.Conn.Close()
+	handleError(err)
 
 	srv, err := gmailService(db, userID)
 	handleError(err)
@@ -56,7 +56,7 @@ func processMessage(srv *gmail.Service, messageID string) error {
 
 	for _, part := range messageRes.Payload.Parts {
 		fmt.Printf(">>>> mime: %s\n", part.MimeType)
-		decoded, err := base64.StdEncoding.DecodeString(part.Body.Data)
+		decoded, err := base64.URLEncoding.DecodeString(part.Body.Data)
 		if err != nil {
 			return err
 		}

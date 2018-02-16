@@ -13,15 +13,20 @@ import (
 )
 
 func ProcessGmailHistoryId(historyID uint64, userID int) {
+	fmt.Println("Starting...")
 	db, err := database.NewDB()
 	defer db.Conn.Close()
 	handleError(err)
 
+	fmt.Println("Gmail service...")
 	srv, err := gmailService(db, userID)
 	handleError(err)
+	fmt.Println("Done.")
 
+	fmt.Println("Processing messages...")
 	err = processMessages(srv, historyID)
 	handleError(err)
+	fmt.Println("Done.")
 }
 
 func handleError(err error) {

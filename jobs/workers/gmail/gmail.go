@@ -26,6 +26,7 @@ func ProcessGmailHistoryId(historyID uint64, userID int) {
 
 func handleError(err error) {
 	if err != nil {
+		fmt.Printf("Uh oh >> %s\n", err.Error())
 		panic(err.Error())
 	}
 }
@@ -96,7 +97,6 @@ func tokenFromUser(db *database.DB, userID int) (*oauth2.Token, error) {
 	token.AccessToken = provider.AccessToken
 	token.RefreshToken = provider.RefreshToken
 	token.Expiry = provider.Expiry
-	token.TokenType = provider.TokenType
 	return token, nil
 }
 

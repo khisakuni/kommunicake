@@ -60,6 +60,8 @@ func processMessage(srv *gmail.Service, messageID string) error {
 		return err
 	}
 
+	fmt.Printf(">>> DATA >>> %s\n", messageRes.Payload.Body.Data)
+	fmt.Printf("PARTS COUNT: %d\n", len(messageRes.Payload.Parts))
 	for _, part := range messageRes.Payload.Parts {
 		fmt.Printf(">>>> mime: %s\n", part.MimeType)
 		decoded, err := base64.URLEncoding.DecodeString(part.Body.Data)

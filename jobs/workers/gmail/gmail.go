@@ -42,7 +42,9 @@ func processMessages(srv *gmail.Service, historyID uint64) error {
 		return err
 	}
 
+	fmt.Printf("HISTORY COUNT %d\n", len(res.History))
 	for _, history := range res.History {
+		fmt.Printf("MESSSAGES ADDED COUNT %d\n", len(history.MessagesAdded))
 		for _, m := range history.MessagesAdded {
 			err = processMessage(srv, m.Message.Id)
 			if err != nil {

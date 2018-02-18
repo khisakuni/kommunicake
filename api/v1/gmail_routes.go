@@ -194,6 +194,7 @@ func GmailWebhookNewMessage(w http.ResponseWriter, r *http.Request) {
 
 	q, err := queue.NewQueue("default")
 	if err != nil {
+		fmt.Printf("ERR >>%s\n", err.Error())
 		panic(err)
 	}
 	defer q.CleanUp()
@@ -202,8 +203,11 @@ func GmailWebhookNewMessage(w http.ResponseWriter, r *http.Request) {
 	err = q.Publish(j)
 
 	if err != nil {
+		fmt.Printf("ERR 2 >>%s\n", err.Error())
 		panic(err)
 	}
+
+	fmt.Printf("QUEUING UP\n")
 
 	fmt.Fprintf(w, "cool")
 }

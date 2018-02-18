@@ -5,8 +5,6 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/khisakuni/kommunicake/jobs/queue"
-
-	gmail_workers "github.com/khisakuni/kommunicake/jobs/workers/gmail"
 )
 
 func main() {
@@ -32,12 +30,12 @@ func main() {
 
 	q.RegisterWorker("ProcessGmailHistoryID", func(args interface{}) {
 		fmt.Println("RECEIVED MESSAGE!!!")
-		bodyMap := args.(map[string]interface{})
-		fmt.Println(bodyMap)
-		historyID := uint64(bodyMap["HistoryId"].(float64))
-		userID := int(bodyMap["UserId"].(float64))
-
-		gmail_workers.ProcessGmailHistoryID(historyID, userID)
+		//		bodyMap := args.(map[string]interface{})
+		//		fmt.Println(bodyMap)
+		//		historyID := uint64(bodyMap["HistoryId"].(float64))
+		//		userID := int(bodyMap["UserId"].(float64))
+		//
+		//		gmail_workers.ProcessGmailHistoryID(historyID, userID)
 
 	})
 

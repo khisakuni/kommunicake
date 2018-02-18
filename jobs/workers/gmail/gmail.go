@@ -23,22 +23,22 @@ type params struct {
 // ProcessGmailHistoryID does something idk lol
 func ProcessGmailHistoryID(historyID uint64, userID int) {
 	fmt.Printf("WOO HOO %d, %d\n", historyID, userID)
-	//	fmt.Println("Starting...")
-	//	db, err := database.NewDB()
-	//	handleError(err)
-	//	defer db.Conn.Close()
-	//
-	//	p := &params{db: db, userID: userID, historyID: historyID}
-	//
-	//	fmt.Println("Gmail service...")
-	//	err = gmailService(p)
-	//	handleError(err)
-	//	fmt.Println("Done.")
-	//
-	//	fmt.Println("Processing messages...")
-	//	err = processMessages(p)
-	//	handleError(err)
-	//	fmt.Println("Done.")
+	fmt.Println("Starting...")
+	db, err := database.NewDB()
+	handleError(err)
+	defer db.Conn.Close()
+
+	p := &params{db: db, userID: userID, historyID: historyID}
+
+	fmt.Println("Gmail service...")
+	err = gmailService(p)
+	handleError(err)
+	fmt.Println("Done.")
+
+	fmt.Println("Processing messages...")
+	err = processMessages(p)
+	handleError(err)
+	fmt.Println("Done.")
 }
 
 func handleError(err error) {

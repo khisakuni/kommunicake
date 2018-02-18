@@ -80,6 +80,7 @@ func processMessages(p *params) error {
 	fmt.Println("FULL SYNC")
 
 	p.provider.HistoryID = p.historyID
+	fmt.Printf("privider history id >> %d\n", p.provider.HistoryID)
 	p.db.Conn.Save(p.provider)
 	if p.db.Conn.Error != nil {
 		return p.db.Conn.Error

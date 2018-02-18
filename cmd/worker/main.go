@@ -28,14 +28,14 @@ func main() {
 				- get entire message
 	*/
 
-	q.RegisterWorker("ProcessGmailHistoryId", func(args interface{}) {
+	q.RegisterWorker("ProcessGmailHistoryID", func(args interface{}) {
 		fmt.Println("received message!")
 		bodyMap := args.(map[string]interface{})
 		fmt.Println(bodyMap)
 		historyId := uint64(bodyMap["HistoryId"].(float64))
 		userId := int(bodyMap["UserId"].(float64))
 
-		gmail_workers.ProcessGmailHistoryId(historyId, userId)
+		gmail_workers.ProcessGmailHistoryID(historyId, userId)
 
 	})
 

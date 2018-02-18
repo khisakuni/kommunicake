@@ -16,6 +16,7 @@ type UserMessageProvider struct {
 	AccessToken         string              `json:"accessToken"`
 	Expiry              time.Time
 	TokenType           string
+	HistoryID           uint64
 }
 
 type MessageProviderType string

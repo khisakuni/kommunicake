@@ -12,19 +12,30 @@ import (
 	gmail "google.golang.org/api/gmail/v1"
 )
 
-func ProcessGmailHistoryId(historyID uint64, userID int) {
+type params struct {
+	db        *database.DB
+	userID    int
+	historyID uint64
+	service   *gmail.Service
+	provider  *models.UserMessageProvider
+}
+
+// ProcessGmailHistoryID does something idk lol
+func ProcessGmailHistoryID(historyID uint64, userID int) {
 	fmt.Println("Starting...")
 	db, err := database.NewDB()
 	defer db.Conn.Close()
 	handleError(err)
 
+	p := &params{db: db, userID: userID, historyID: historyID}
+
 	fmt.Println("Gmail service...")
-	srv, err := gmailService(db, userID)
+	err = gmailService(p)
 	handleError(err)
 	fmt.Println("Done.")
 
 	fmt.Println("Processing messages...")
-	err = processMessages(srv, historyID)
+	err = processMessages(p)
 	handleError(err)
 	fmt.Println("Done.")
 }
@@ -36,21 +47,41 @@ func handleError(err error) {
 	}
 }
 
-func processMessages(srv *gmail.Service, historyID uint64) error {
-	res, err := srv.Users.History.List("me").StartHistoryId(historyID).Do()
-	if err != nil {
-		return err
-	}
+func processMessages(p *params) error {
+	if p.provider.HistoryID > 0 {
+		// partial sync
+		res, err := p.service.Users.History.List("me").StartHistoryId(p.provider.HistoryID).Do()
+		if err != nil {
+			return err
+		}
 
-	fmt.Printf("HISTORY COUNT %d\n", len(res.History))
-	for _, history := range res.History {
-		fmt.Printf("MESSSAGES ADDED COUNT %d\n", len(history.MessagesAdded))
-		for _, m := range history.MessagesAdded {
-			err = processMessage(srv, m.Message.Id)
-			if err != nil {
-				return err
+		p.provider.HistoryID = p.historyID
+		p.db.Conn.Model(p.provider).Update("history_id")
+		if p.db.Conn.Error != nil {
+			return p.db.Conn.Error
+		}
+
+		fmt.Printf("HISTORY COUNT %d\n", len(res.History))
+		for _, history := range res.History {
+			fmt.Printf("MESSSAGES ADDED COUNT %d\n", len(history.MessagesAdded))
+			for _, m := range history.MessagesAdded {
+				err = processMessage(p.service, m.Message.Id)
+				if err != nil {
+					return err
+				}
 			}
 		}
+
+		return nil
+	}
+
+	// "full" sync
+	fmt.Println("FULL SYNC")
+
+	p.provider.HistoryID = p.historyID
+	p.db.Conn.Model(p.provider).Update("history_id")
+	if p.db.Conn.Error != nil {
+		return p.db.Conn.Error
 	}
 
 	return nil
@@ -77,10 +108,16 @@ func processMessage(srv *gmail.Service, messageID string) error {
 	return nil
 }
 
-func gmailService(db *database.DB, userID int) (*gmail.Service, error) {
-	token, err := tokenFromUser(db, userID)
+func gmailService(p *params) error {
+	provider, err := provider(p.db, p.userID)
 	if err != nil {
-		return nil, err
+		return err
+	}
+	p.provider = provider
+
+	token, err := tokenFromUser(provider)
+	if err != nil {
+		return err
 	}
 
 	config := gmailOauthConfig()
@@ -88,25 +125,26 @@ func gmailService(db *database.DB, userID int) (*gmail.Service, error) {
 	client := config.Client(ctx, token)
 	srv, err := gmail.New(client)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return srv, nil
+	p.service = srv
+	return nil
 }
 
-func tokenFromUser(db *database.DB, userID int) (*oauth2.Token, error) {
-	var provider models.UserMessageProvider
-	db.Conn.
-		Where(models.UserMessageProvider{UserID: userID, MessageProviderType: models.GMAIL}).
-		First(&provider)
-	if db.Conn.Error != nil {
-		return nil, db.Conn.Error
-	}
-
+func tokenFromUser(provider *models.UserMessageProvider) (*oauth2.Token, error) {
 	token := new(oauth2.Token)
 	token.AccessToken = provider.AccessToken
 	token.RefreshToken = provider.RefreshToken
 	token.Expiry = provider.Expiry
 	return token, nil
+}
+
+func provider(db *database.DB, userID int) (*models.UserMessageProvider, error) {
+	var provider models.UserMessageProvider
+	db.Conn.
+		Where(models.UserMessageProvider{UserID: userID, MessageProviderType: models.GMAIL}).
+		First(&provider)
+	return &provider, db.Conn.Error
 }
 
 func gmailOauthConfig() *oauth2.Config {

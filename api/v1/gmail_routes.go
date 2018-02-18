@@ -180,12 +180,13 @@ func GmailWebhookNewMessage(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("user >>> %v\n", user)
 
+	// TODO: have some kind of fail safe if wrong name
 	args := struct {
 		Name      string
 		HistoryId uint64
 		UserId    int
 	}{
-		Name:      "ProcessGmailHistoryId",
+		Name:      "ProcessGmailHistoryID",
 		HistoryId: md.HistoryID,
 		UserId:    user.ID,
 	}

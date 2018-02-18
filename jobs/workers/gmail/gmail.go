@@ -57,7 +57,7 @@ func processMessages(p *params) error {
 		}
 
 		p.provider.HistoryID = p.historyID
-		p.db.Conn.Model(p.provider).Update("history_id")
+		p.db.Conn.Save(p.provider)
 		if p.db.Conn.Error != nil {
 			return p.db.Conn.Error
 		}
@@ -80,7 +80,7 @@ func processMessages(p *params) error {
 	fmt.Println("FULL SYNC")
 
 	p.provider.HistoryID = p.historyID
-	p.db.Conn.Model(p.provider).Update("history_id")
+	p.db.Conn.Save(p.provider)
 	if p.db.Conn.Error != nil {
 		return p.db.Conn.Error
 	}

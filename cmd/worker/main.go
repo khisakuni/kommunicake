@@ -50,8 +50,8 @@ func main() {
 }
 
 func handleError(err error) {
-	fmt.Printf("UH OH %s\n", err.Error())
 	if err != nil {
+		fmt.Printf("UH OH %s\n", err.Error())
 		panic(err)
 	}
 }

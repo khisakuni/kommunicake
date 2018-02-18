@@ -14,19 +14,7 @@ func main() {
 	defer q.CleanUp()
 	fmt.Println("INITIALIZED WORKER")
 
-	q.RegisterWorker("SayHi", func(args interface{}) {
-		bodyMap := args.(map[string]interface{})
-		message := bodyMap["Message"].(string)
-		fmt.Printf("hi!! %s\n", message)
-	})
-
-	/*
-		TODO:
-			- extract worker code into it's own file
-			- clean up controller code
-			- do something useful in ProcessGmailHistoryId worker
-				- get entire message
-	*/
+	fmt.Printf("q >>>>>>> %v\n", q)
 
 	q.RegisterWorker("ProcessGmailHistoryID", func(args interface{}) {
 		fmt.Println("RECEIVED MESSAGE!!!")

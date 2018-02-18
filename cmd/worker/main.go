@@ -27,10 +27,14 @@ func main() {
 
 	})
 
+	fmt.Println("REGISTERED WORKRES")
+
 	err = q.Consume()
 	if err != nil {
 		handleError(err)
 	}
+
+	fmt.Println("CONSUMING")
 
 	select {}
 }

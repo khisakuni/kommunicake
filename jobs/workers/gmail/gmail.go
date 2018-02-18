@@ -24,8 +24,8 @@ type params struct {
 func ProcessGmailHistoryID(historyID uint64, userID int) {
 	fmt.Println("Starting...")
 	db, err := database.NewDB()
-	defer db.Conn.Close()
 	handleError(err)
+	defer db.Conn.Close()
 
 	p := &params{db: db, userID: userID, historyID: historyID}
 

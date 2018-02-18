@@ -10,9 +10,11 @@ import (
 )
 
 func main() {
+	fmt.Printf("WORKER MAIN\n")
 	q, err := queue.NewQueue("default")
-	defer q.CleanUp()
 	handleError(err)
+	defer q.CleanUp()
+	fmt.Println("INITIALIZED WORKER")
 
 	q.RegisterWorker("SayHi", func(args interface{}) {
 		bodyMap := args.(map[string]interface{})
@@ -29,22 +31,26 @@ func main() {
 	*/
 
 	q.RegisterWorker("ProcessGmailHistoryID", func(args interface{}) {
-		fmt.Println("received message!")
+		fmt.Println("RECEIVED MESSAGE!!!")
 		bodyMap := args.(map[string]interface{})
 		fmt.Println(bodyMap)
-		historyId := uint64(bodyMap["HistoryId"].(float64))
-		userId := int(bodyMap["UserId"].(float64))
+		historyID := uint64(bodyMap["HistoryId"].(float64))
+		userID := int(bodyMap["UserId"].(float64))
 
-		gmail_workers.ProcessGmailHistoryID(historyId, userId)
+		gmail_workers.ProcessGmailHistoryID(historyID, userID)
 
 	})
 
-	q.Consume()
+	err = q.Consume()
+	if err != nil {
+		handleError(err)
+	}
 
 	select {}
 }
 
 func handleError(err error) {
+	fmt.Printf("UH OH %s\n", err.Error())
 	if err != nil {
 		panic(err)
 	}

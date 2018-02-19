@@ -22,8 +22,7 @@ type params struct {
 
 // ProcessGmailHistoryID does something idk lol
 func ProcessGmailHistoryID(historyID uint64, userID int) {
-	fmt.Printf("WOO HOO %d, %d\n", historyID, userID)
-	fmt.Println("Starting...")
+	fmt.Println("Starting ProcessGmailHistoryID...")
 	db, err := database.NewDB()
 	handleError(err)
 	defer db.Conn.Close()
@@ -43,7 +42,6 @@ func ProcessGmailHistoryID(historyID uint64, userID int) {
 
 func handleError(err error) {
 	if err != nil {
-		fmt.Printf("Uh oh >> %s\n", err.Error())
 		panic(err.Error())
 	}
 }
@@ -62,9 +60,7 @@ func processMessages(p *params) error {
 			return p.db.Conn.Error
 		}
 
-		fmt.Printf("HISTORY COUNT %d\n", len(res.History))
 		for _, history := range res.History {
-			fmt.Printf("MESSSAGES ADDED COUNT %d\n", len(history.MessagesAdded))
 			for _, m := range history.MessagesAdded {
 				err = processMessage(p.service, m.Message.Id)
 				if err != nil {
@@ -80,7 +76,6 @@ func processMessages(p *params) error {
 	fmt.Println("FULL SYNC")
 
 	p.provider.HistoryID = p.historyID
-	fmt.Printf("privider history id >> %d\n", p.provider.HistoryID)
 	p.db.Conn.Save(p.provider)
 	if p.db.Conn.Error != nil {
 		return p.db.Conn.Error
@@ -91,10 +86,17 @@ func processMessages(p *params) error {
 
 func processMessage(srv *gmail.Service, messageID string) error {
 	messageRes, err := srv.Users.Messages.Get("me", messageID).Do()
+
 	if err != nil {
 		return err
 	}
 
+	// LOGIC
+	// IF messateRes.Payload.Body.Data is present
+	//     Parse this and treat this as message
+	// ELSE
+	//     Use messageRes.Payload.Parts as message
+	//     (Prefer mime HTML)
 	fmt.Printf(">>> DATA >>> %s\n", messageRes.Payload.Body.Data)
 	fmt.Printf("PARTS COUNT: %d\n", len(messageRes.Payload.Parts))
 	for _, part := range messageRes.Payload.Parts {

@@ -42,6 +42,9 @@ func (mc *MessageClient) GetMessageBody(reqFn MessageRequest) (*DecodedMessage, 
 			}
 			messageBody = decoded
 			mimeType = part.MimeType
+			if mimeType == "text/html" {
+				break
+			}
 		}
 	}
 

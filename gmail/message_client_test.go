@@ -17,14 +17,21 @@ type getMessageResult struct {
 
 var err = fmt.Errorf("uh oh")
 var messageBody = "message-foobar"
+var textMessagePart = &api.MessagePart{
+	MimeType: "text/plain",
+	Body: &api.MessagePartBody{
+		Data: encodedMessageBody,
+	},
+}
+var htmlMessagePart = &api.MessagePart{
+	MimeType: "text/html",
+	Body: &api.MessagePartBody{
+		Data: encodedMessageBody,
+	},
+}
 var encodedMessageBody = base64.URLEncoding.EncodeToString([]byte(messageBody))
 var bodyMessage = &api.Message{
-	Payload: &api.MessagePart{
-		MimeType: "text/plain",
-		Body: &api.MessagePartBody{
-			Data: encodedMessageBody,
-		},
-	},
+	Payload: textMessagePart,
 }
 var htmlPartMessage = &api.Message{
 	Payload: &api.MessagePart{
@@ -52,6 +59,12 @@ var textPartMessage = &api.Message{
 		},
 	},
 }
+var textAndHTMLPartMessage = &api.Message{
+	Payload: &api.MessagePart{
+		Body:  &api.MessagePartBody{},
+		Parts: []*api.MessagePart{htmlMessagePart, textMessagePart},
+	},
+}
 var getMessageTests = []struct {
 	input    gmail.MessageRequest
 	expected getMessageResult
@@ -71,6 +84,10 @@ var getMessageTests = []struct {
 	{
 		input:    func() (*api.Message, error) { return textPartMessage, nil },
 		expected: getMessageResult{body: &gmail.DecodedMessage{Body: messageBody, MimeType: "text/plain"}, err: nil},
+	},
+	{
+		input:    func() (*api.Message, error) { return textAndHTMLPartMessage, nil },
+		expected: getMessageResult{body: &gmail.DecodedMessage{Body: messageBody, MimeType: "text/html"}, err: nil},
 	},
 }
 
